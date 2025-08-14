@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Leakage Report Form</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1"> <!-- Mobile scaling -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 15px;
+            max-width: 600px;
+        }
+        label {
+            display: block;
+            margin-top: 12px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        input, select, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        textarea {
+            height: 150px;
+        }
+        button {
+            min-height: 45px; /* Bigger tap target for mobile */
+        }
+        .btn-generate {
+            margin-top: 15px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 6px;
+        }
+        .btn-generate:hover {
+            background: #0069d9;
+        }
+        .btn-green {
+            background: #25D366;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 6px;
+        }
+        .btn-green:hover {
+            background: #1ebe5a;
+        }
+        .btn-gray {
+            background: #6c757d;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 6px;
+        }
+        .btn-gray:hover {
+            background: #5a6268;
+        }
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap; /* Allows stacking on narrow screens */
+        }
+        .btn-row button {
+            flex: 1;
+            min-width: 140px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Leakage Report Form</h2>
+
+<form id="reportForm">
+    <label>Case Type</label>
+    <select id="caseType">
+        <option value="Major Leakage">Major Leakage</option>
+        <option value="Minor Leakage">Minor Leakage</option>
+        <option value="3rd party Damage">3rd party Damage</option>
+        <option value="Project S/D">Project S/D</option>
+    </select>
+
+    <label>Affected Asset</label>
+    <input type="text" id="affectedAsset">
+
+    <label>Location</label>
+    <input type="text" id="location">
+
+    <label>Isolating Time</label>
+    <input type="datetime-local" id="isolatingTime">
+
+    <label>Number of Valves</label>
+    <input type="number" id="numValves">
+
+    <label>Customer Affected</label>
+    <input type="text" id="customerAffected">
+
+    <label>VIP Affected</label>
+    <select id="vipAffected">
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+    </select>
+
+    <label>Alternative Source</label>
+    <select id="alternativeSource">
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+    </select>
+
+    <label>Current Status</label>
+    <select id="currentStatus">
+        <option value="Isolated">Isolated</option>
+        <option value="Not Isolated">Not Isolated</option>
+    </select>
+
+    <label>Expected Restoration Time</label>
+    <input type="text" id="expectedRestoration">
+
+    <button type="button" class="btn-generate" onclick="generateMessage()">Generate Message</button>
+
+    <label>Generated WhatsApp Message</label>
+    <textarea id="messageOutput" readonly></textarea>
+
+    <div class="btn-row">
+        <button type="button" class="btn-gray" onclick="copyToClipboard()">Copy to Clipboard</button>
+        <button type="button" class="btn-green" onclick="sendToWhatsApp()">Send to WhatsApp</button>
+    </div>
+</form>
+
+<script>
+function formatDateTime(inputValue) {
+    if (!inputValue) return "";
+    const date = new Date(inputValue);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+
+    let hours = date.getHours();
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // convert 0 to 12
+
+    return `${day}/${month} | ${hours}:${minutes} ${ampm}`;
+}
+
+function generateMessage() {
+    const caseType = document.getElementById('caseType').value;
+    const affectedAsset = document.getElementById('affectedAsset').value;
+    const location = document.getElementById('location').value;
+    const isolatingTime = formatDateTime(document.getElementById('isolatingTime').value);
+    const numValves = document.getElementById('numValves').value;
+    const customerAffected = document.getElementById('customerAffected').value;
+    const vipAffected = document.getElementById('vipAffected').value;
+    const alternativeSource = document.getElementById('alternativeSource').value;
+    const currentStatus = document.getElementById('currentStatus').value;
+    const expectedRestoration = document.getElementById('expectedRestoration').value;
+
+    let message = 
+`*Case Type:* ${caseType}
+*Affected Asset:* ${affectedAsset}
+*Location:* ${location}
+*Isolating Time:* ${isolatingTime}
+*Number of Valves:* ${numValves}
+*Customer Affected:* ${customerAffected}
+*VIP Affected:* ${vipAffected}
+*Alternative Source:* ${alternativeSource}
+*Current Status:* ${currentStatus}
+*Expected Restoration Time:* ${expectedRestoration}`;
+
+    document.getElementById('messageOutput').value = message;
+}
+
+function sendToWhatsApp() {
+    const message = document.getElementById('messageOutput').value;
+    if (!message.trim()) {
+        alert("Please generate the message first!");
+        return;
+    }
+    const encodedMessage = encodeURIComponent(message);
+    const phoneNumber = ""; // Add phone number here if needed
+    const url = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+    window.open(url, '_blank');
+}
+
+function copyToClipboard() {
+    const textArea = document.getElementById('messageOutput');
+    if (!textArea.value.trim()) {
+        alert("Please generate the message first!");
+        return;
+    }
+    textArea.select();
+    textArea.setSelectionRange(0, 99999); // For mobile devices
+    document.execCommand('copy');
+    alert("Message copied to clipboard!");
+}
+</script>
+
+</body>
+</html>
