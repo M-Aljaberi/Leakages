@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leakage Report</title>
+<style>
+body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; margin: 0; }
+h2 { text-align: center; }
+label { display: block; margin-top: 15px; font-weight: bold; font-size: 1rem; }
+input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; font-size: 1rem; border-radius: 5px; border: 1px solid #ccc; }
+textarea { resize: vertical; }
+button { padding: 12px; margin-top: 15px; cursor: pointer; border: none; border-radius: 5px; font-size: 1rem; }
+#generateBtn { background-color: #28a745; color: white; width: 100%; }
+#whatsappBtn { background-color: #25D366; color: white; }
+#copyBtn { background-color: #007BFF; color: white; }
+#message { width: 100%; height: 300px; margin-top: 15px; padding: 10px; font-size: 1rem; border-radius: 5px; border: 1px solid #ccc; }
+.button-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+.button-container button { flex: 1; min-width: 120px; }
+@media (max-width: 480px) {
+    body { padding: 15px; }
+    button { font-size: 1rem; padding: 10px; }
+    input, select, textarea { font-size: 1rem; padding: 10px; }
+}
+</style>
+</head>
+<body>
+
+<h2>Leakage Report</h2>
+
+<form id="reportForm">
+<label for="caseType">Case Type</label>
+<select id="caseType">
+  <option>Major Leakage</option>
+  <option>Minor Leakage</option>
+  <option>3rd Party Damage</option>
+  <option>Project S/D</option>
+</select>
+
+<label for="asset">Affected Asset</label>
+<input type="text" id="asset">
+
+<label for="location">Location</label>
+<input type="text" id="location">
+
+<label for="isolatingTime">Isolating Time</label>
+<input type="datetime-local" id="isolatingTime">
+
+<label for="numValves">Num. of Valves</label>
+<input type="number" id="numValves">
+
+<label for="customer">Customers Affected</label>
+<input type="text" id="customer">
+
+<label for="vip">VIP Affected</label>
+<select id="vip">
+  <option>Yes</option>
+  <option>No</option>
+</select>
+
+<label for="altSource">Alternative Source</label>
+<select id="altSource">
+  <option>Yes</option>
+  <option>No</option>
+</select>
+
+<label for="isolationStatus">Isolation Status</label>
+<select id="isolationStatus">
+  <option>Isolated</option>
+  <option>Not Isolated</option>
+</select>
+
+<label for="currentSituation">Current Situation</label>
+<textarea id="currentSituation" placeholder="Describe current situation & time needed"></textarea>
+
+</form>
+
+<button id="generateBtn">Generate Message</button>
+
+<textarea id="message" placeholder="Generated message will appear here..." readonly></textarea>
+
+<div class="button-container">
+<button id="whatsappBtn">Send to WhatsApp</button>
+<button id="copyBtn">Copy to Clipboard</button>
+</div>
+
+<script>
+function formatDateTime(input) {
+    const date = new Date(input);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth()+1).padStart(2, '0');
+    let hours = date.getHours();
+    let minutes = String(date.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+    return `${day}/${month} | ${hours}:${minutes} ${ampm}`;
+}
+
+document.getElementById('generateBtn').addEventListener('click', function() {
+    const msg = 
+`*Case Type:* ${document.getElementById('caseType').value}
+*Affected Asset:* ${document.getElementById('asset').value}
+*Location:* ${document.getElementById('location').value}
+*Isolating Time:* ${formatDateTime(document.getElementById('isolatingTime').value)}
+*Num. of Valves:* ${document.getElementById('numValves').value}
+*Customers Affected:* ${document.getElementById('customer').value}
+*VIP Affected:* ${document.getElementById('vip').value}
+*Alternative Source:* ${document.getElementById('altSource').value}
+*Isolation Status:* ${document.getElementById('isolationStatus').value}
+*Current Situation:* ${document.getElementById('currentSituation').value}`;
+    document.getElementById('message').value = msg;
+});
+
+document.getElementById('whatsappBtn').addEventListener('click', function() {
+    const text = encodeURIComponent(document.getElementById('message').value);
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+});
+
+document.getElementById('copyBtn').addEventListener('click', function() {
+    navigator.clipboard.writeText(document.getElementById('message').value);
+    alert('Message copied to clipboard!');
+});
+</script>
+
+</body>
+</html>
