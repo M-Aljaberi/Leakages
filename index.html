@@ -3,30 +3,92 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Leakage Report</title>
+<title>Water Interruption Summary</title>
 <style>
-body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; margin: 0; }
-h2 { text-align: center; }
-label { display: block; margin-top: 15px; font-weight: bold; font-size: 1rem; }
-input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; font-size: 1rem; border-radius: 5px; border: 1px solid #ccc; }
-textarea { resize: vertical; }
-button { padding: 12px; margin-top: 15px; cursor: pointer; border: none; border-radius: 5px; font-size: 1rem; }
-#generateBtn { background-color: #28a745; color: white; width: 100%; }
-#whatsappBtn { background-color: #25D366; color: white; }
-#copyBtn { background-color: #007BFF; color: white; }
-#message { width: 100%; height: 300px; margin-top: 15px; padding: 10px; font-size: 1rem; border-radius: 5px; border: 1px solid #ccc; }
-.button-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
-.button-container button { flex: 1; min-width: 120px; }
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background: #f9f9f9;
+    margin: 0;
+}
+h2 {
+    text-align: center;
+    font-size: 1.5rem;
+}
+label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+    font-size: 1rem;
+}
+input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    box-sizing: border-box;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+textarea {
+    resize: vertical;
+}
+button {
+    padding: 12px;
+    margin-top: 15px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+#generateBtn {
+    background-color: #28a745;
+    color: white;
+    width: 100%;
+}
+#whatsappBtn {
+    background-color: #25D366;
+    color: white;
+}
+#copyBtn {
+    background-color: #007BFF;
+    color: white;
+}
+#message {
+    width: 100%;
+    height: 300px;
+    margin-top: 15px;
+    padding: 10px;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+.button-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+.button-container button {
+    flex: 1;
+    min-width: 120px;
+}
+.hidden { display: none; }
+
+/* Mobile responsiveness tweaks */
 @media (max-width: 480px) {
-    body { padding: 15px; }
-    button { font-size: 1rem; padding: 10px; }
-    input, select, textarea { font-size: 1rem; padding: 10px; }
+    body { padding: 10px; }
+    h2 { font-size: 1.3rem; }
+    label { font-size: 0.95rem; }
+    input, select, textarea { font-size: 0.95rem; padding: 8px; }
+    button { font-size: 0.95rem; padding: 10px; }
+    #message { height: 250px; font-size: 0.95rem; }
 }
 </style>
 </head>
 <body>
 
-<h2>Leakage Report</h2>
+<h2>Water Interruption Summary</h2>
 
 <form id="reportForm">
 <label for="caseType">Case Type</label>
@@ -37,14 +99,36 @@ button { padding: 12px; margin-top: 15px; cursor: pointer; border: none; border-
   <option>Project S/D</option>
 </select>
 
-<label for="asset">Affected Asset</label>
+<!-- 3rd Party Damage fields -->
+<div id="thirdPartyFields" class="hidden">
+  <label for="damagedBy">Damaged By</label>
+  <input type="text" id="damagedBy" placeholder="Enter company that damaged the asset">
+
+  <label for="repairBy">Repair By</label>
+  <input type="text" id="repairBy" placeholder="Enter company that will repair the asset">
+</div>
+
+<!-- Affected Asset / Work Scope -->
+<label for="asset" id="assetLabel">Affected Asset</label>
 <input type="text" id="asset">
+
+<!-- Done By (Project S/D) -->
+<div id="doneByField" class="hidden">
+  <label for="doneBy">Done By</label>
+  <input type="text" id="doneBy" placeholder="Enter company that did the work">
+</div>
 
 <label for="location">Location</label>
 <input type="text" id="location">
 
 <label for="isolatingTime">Isolating Time</label>
-<input type="datetime-local" id="isolatingTime">
+<input type="datetime-local" id="isolatingTime" step="900">
+
+<label for="isolationStatus">Isolation Status</label>
+<select id="isolationStatus">
+  <option>Isolated</option>
+  <option>Not Isolated</option>
+</select>
 
 <label for="numValves">Num. of Valves</label>
 <input type="number" id="numValves">
@@ -62,12 +146,6 @@ button { padding: 12px; margin-top: 15px; cursor: pointer; border: none; border-
 <select id="altSource">
   <option>Yes</option>
   <option>No</option>
-</select>
-
-<label for="isolationStatus">Isolation Status</label>
-<select id="isolationStatus">
-  <option>Isolated</option>
-  <option>Not Isolated</option>
 </select>
 
 <label for="expectedRestoration">Expected Restoration Time</label>
@@ -126,19 +204,54 @@ function formatDateTime(input) {
     return `${day}/${month} | ${hours}:${minutes} ${ampm}`;
 }
 
+// Handle case type changes
+document.getElementById('caseType').addEventListener('change', function() {
+    const value = this.value;
+
+    const thirdPartyFields = document.getElementById('thirdPartyFields');
+    if (value === "3rd Party Damage") {
+        thirdPartyFields.classList.remove('hidden');
+    } else {
+        thirdPartyFields.classList.add('hidden');
+    }
+
+    const assetLabel = document.getElementById('assetLabel');
+    const doneByField = document.getElementById('doneByField');
+    if (value === "Project S/D") {
+        assetLabel.textContent = "Work Scope";
+        doneByField.classList.remove('hidden');
+    } else {
+        assetLabel.textContent = "Affected Asset";
+        doneByField.classList.add('hidden');
+    }
+});
+
 document.getElementById('generateBtn').addEventListener('click', function() {
-    const msg = 
-`*Case Type:* ${document.getElementById('caseType').value}
-*Affected Asset:* ${document.getElementById('asset').value}
+    let msg = `*Case Type:* ${document.getElementById('caseType').value}`;
+
+    if (document.getElementById('caseType').value === "3rd Party Damage") {
+        msg += `\n*Damaged By:* ${document.getElementById('damagedBy').value}
+*Repair By:* ${document.getElementById('repairBy').value}`;
+    }
+
+    if (document.getElementById('caseType').value === "Project S/D") {
+        msg += `\n*Work Scope:* ${document.getElementById('asset').value}
+*Done By:* ${document.getElementById('doneBy').value}`;
+    } else if (document.getElementById('caseType').value !== "3rd Party Damage") {
+        msg += `\n*Affected Asset:* ${document.getElementById('asset').value}`;
+    }
+
+    msg += `
 *Location:* ${document.getElementById('location').value}
 *Isolating Time:* ${formatDateTime(document.getElementById('isolatingTime').value)}
+*Isolation Status:* ${document.getElementById('isolationStatus').value}
 *Num. of Valves:* ${document.getElementById('numValves').value}
 *Customers Affected:* ${document.getElementById('customer').value}
 *VIP Affected:* ${document.getElementById('vip').value}
 *Alternative Source:* ${document.getElementById('altSource').value}
-*Isolation Status:* ${document.getElementById('isolationStatus').value}
 *Expected Restoration Time:* ${document.getElementById('expectedRestoration').value}
 *Current Situation:* ${document.getElementById('currentSituation').value}`;
+
     document.getElementById('message').value = msg;
 });
 
